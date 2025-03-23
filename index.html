@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Price Forecast</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Stock Price Forecast</h1>
+
+    <h2>Forecasted Prices</h2>
+    <ul>
+        {% for value in forecast %}
+            <li>{{ value }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Stock Price Chart</h2>
+    <div id="plot"></div>
+
+    <script>
+        var forecastedData = {{ forecast | tojson }};
+        var trace1 = {
+            x: Array.from({length: forecastedData.length}, (_, i) => i + 1),
+            y: forecastedData,
+            mode: 'lines+markers',
+            name: 'Forecasted Price'
+        };
+
+        var layout = {
+            title: 'Stock Price Prediction',
+            xaxis: { title: 'Days Ahead' },
+            yaxis: { title: 'Price' }
+        };
+
+        Plotly.newPlot('plot', [trace1], layout);
+    </script>
+</body>
+</html>
