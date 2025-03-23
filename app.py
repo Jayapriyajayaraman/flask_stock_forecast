@@ -27,3 +27,8 @@ except FileNotFoundError:
     print(f"Error: {csv_file} not found. Make sure 'GME_stock.csv' is in your project directory.")
 except Exception as e:
     print(f"An error occurred: {e}")
+import os
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port, debug=False)
