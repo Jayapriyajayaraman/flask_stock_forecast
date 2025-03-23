@@ -4,10 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Price Forecast</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <h1>Stock Price Forecast for {{ stock }}</h1>
-    <div>{{ chart | safe }}</div>
+    
+    {% if forecast %}
+        <ul>
+            {% for value in forecast %}
+                <li>{{ value }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No forecast data available.</p>
+    {% endif %}
 </body>
 </html>
