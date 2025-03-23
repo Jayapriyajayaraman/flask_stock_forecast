@@ -1,16 +1,21 @@
+import os
 import pandas as pd
+from flask import Flask, jsonify
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
-# Check if the stock data file exists
-csv_file = "GME_stock.csv"  # Ensure this file exists in your project folder
+app = Flask(__name__)
 
-try:
-    df = pd.read_csv(csv_file)
+CSV_FILE = "GME_stock.csv"
+FORECAST_FILE = "forecast.csv"
 
-    # Check if 'close_price' column exists
-    if "close_price" not in df.columns:
-        print("Error: 'close_price' column not found in CSV.")
-    else:
+# ✅ Precompute forecast only once
+def compute_forecast():
+    try:
+        df = pd.read_csv(CSV_FILE)
+
+        if "close_price" not in df.columns:
+            return "Error: 'close_price' column missing in CSV."
+
         # Train SARIMA model
         model = SARIMAX(df["close_price"], order=(1,1,1), seasonal_order=(1,1,1,12))
         results = model.fit()
@@ -20,15 +25,29 @@ try:
         forecast_df = pd.DataFrame(forecast, columns=["Forecasted Price"])
 
         # Save forecast data to CSV
-        forecast_df.to_csv("forecast.csv", index=False)
+        forecast_df.to_csv(FORECAST_FILE, index=False)
         print("✅ Forecast saved to forecast.csv")
+    except FileNotFoundError:
+        print(f"Error: {CSV_FILE} not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
-except FileNotFoundError:
-    print(f"Error: {csv_file} not found. Make sure 'GME_stock.csv' is in your project directory.")
-except Exception as e:
-    print(f"An error occurred: {e}")
-import os
+# Run forecast computation before starting Flask
+compute_forecast()
 
+@app.route("/")
+def home():
+    return "📈 Stock Forecast App is Running!"
+
+@app.route("/forecast")
+def get_forecast():
+    if not os.path.exists(FORECAST_FILE):
+        return jsonify({"error": "Forecast file not found"}), 500
+    
+    df = pd.read_csv(FORECAST_FILE)
+    return df.to_json(orient="records")
+
+# ✅ Gunicorn-compatible start command
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
